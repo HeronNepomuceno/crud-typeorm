@@ -1,19 +1,16 @@
 import 'reflect-metadata'
 import * as express from 'express'
+import { Request, Response } from 'express'
 import * as bodyParse from 'body-parser'
 import { User } from './entities/User.entites'
 import { AppDataSource } from './data-source'
 
 const app = express()
 
-app.use(bodyParse.urlencoded({extended: false}))
+app.use(bodyParse.urlencoded({ extended: false }))
 app.use(bodyParse.json())
 
-app.get("/", (req, res) => {
-  res.send('Hello world!')
-})
-
-app.post("/create", async (req, res) => {
+app.post("/create", async (req: Request, res: Response) => {
   let {id, firstName, lastName, isActive} = req.body
 
   const newUser = new User()
@@ -24,26 +21,24 @@ app.post("/create", async (req, res) => {
 
   try {
     await AppDataSource.manager.save(newUser)
-    res.send({"status": "200", "data": newUser})
+    res.json({ data: newUser})
   } catch(err) {
     console.log(err)
   }
 })
 
-app.post("/read", async (req, res) => {
+app.post("/read", async (req: Request, res: Response) => {
   let {id} = req.body
   try {
     const userRepository = AppDataSource.getRepository(User)
-    const userToRead = await userRepository.findOneBy({
-        id: id
-    })
-    res.send({"status": "200", "data": userToRead})
+    const userToRead = await userRepository.findOneBy({ id: id })
+    res.json({ data: userToRead })
   } catch(err) {
     console.log(err)
   }
 })
 
-app.post("/update", async (req, res) => {
+app.post("/update", async (req: Request, res: Response) => {
   let {id, firstName, lastName, isActive} = req.body
 
   try {
@@ -56,22 +51,44 @@ app.post("/update", async (req, res) => {
     userToUpdate.isActive = isActive
 
     await userRepository.save(userToUpdate)
-    res.send({"status": "200", "data": userToUpdate})
+    res.json({ data: userToUpdate })
   } catch(err) {
     console.log(err)
   }
-
 })
 
-app.post("/delete", async (req, res) => {
+app.post("/delete", async (req: Request, res: Response) => {
   let {id} = req.body
   try {
     const userRepository = AppDataSource.getRepository(User)
-    const userToRemove = await userRepository.findOneBy({
-        id: id,
-    })
+    const userToRemove = await userRepository.findOneBy({ id: id })
     await userRepository.remove(userToRemove)
-    res.send({"status": "200", "data": `The user ${id} removed!`})
+    res.send(`User ${id} removed!`)
+  } catch(err) {
+    console.log(err)
+  }
+})
+
+app.get("/list", async (req: Request, res: Response) => {
+  try {
+    const userRepository = AppDataSource.getRepository(User)
+    const allUsers = await userRepository.find()
+    res.json(allUsers)
+  } catch(err) {
+    console.log(err)
+  }
+})
+
+app.get("/read-by-first-name", async (req: Request, res: Response) => {
+  let { firstName } = req.body
+  try {
+    const userRepository = AppDataSource.getRepository(User)
+    const userByFirstName = await userRepository.find({
+      where: {
+        firstName: firstName
+      }
+    })
+    res.json(userByFirstName)
   } catch(err) {
     console.log(err)
   }
