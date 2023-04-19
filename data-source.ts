@@ -12,7 +12,7 @@ export const AppDataSource = new DataSource({
 })
 AppDataSource.initialize()
 	.then(() => {
-		console.log('AppDataSource initilized')
+		console.log('🚀 AppDataSource initialized 🚀')
 	})
 	.catch((err) => {
 		console.log(err)
